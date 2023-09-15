@@ -1,1 +1,116 @@
-{"metadata":{"kernelspec":{"language":"python","display_name":"Python 3","name":"python3"},"language_info":{"pygments_lexer":"ipython3","nbconvert_exporter":"python","version":"3.6.4","file_extension":".py","codemirror_mode":{"name":"ipython","version":3},"name":"python","mimetype":"text/x-python"}},"nbformat_minor":4,"nbformat":4,"cells":[{"cell_type":"markdown","source":"# Convert Data into Frames and Face Detection\n\nThis notebook is split into 2 parts.  First, I am going to convert a video to still frames using OpenCV.  Next I am going to use OpenCV to put a bounding box around faces","metadata":{"_uuid":"1ebefb0b-47f7-48b8-9c30-b3d01fd1c60e","_cell_guid":"ea6910e5-6e24-4f5d-b85a-9abe41682df1","trusted":true}},{"cell_type":"markdown","source":"## Convert Video into Frames","metadata":{"_uuid":"02b0426d-0ad7-4fbe-bfb2-686fb279ca03","_cell_guid":"81ff2926-2f38-45f7-9e80-7054ee5f2a73","trusted":true}},{"cell_type":"code","source":"import cv2\nimport numpy as np\n\nvidObj = cv2.VideoCapture('/kaggle/input/video/ssstik.io_1694784859190.mp4')\n\ncount = 0\n\nwhile True: \n      \n    success, image = vidObj.read() \n    \n    if success:\n        cv2.imwrite(f\"frame{count}.jpg\", image) \n    else: \n        break\n        \n    count += 1","metadata":{"_uuid":"1886b31c-45ed-43f5-9a99-0f7578445afc","_cell_guid":"e9bcc684-6e70-47ff-b7ef-a4fdc6a5327b","collapsed":false,"jupyter":{"outputs_hidden":false},"execution":{"iopub.status.busy":"2023-09-15T13:46:32.596498Z","iopub.execute_input":"2023-09-15T13:46:32.596864Z","iopub.status.idle":"2023-09-15T13:46:36.600453Z","shell.execute_reply.started":"2023-09-15T13:46:32.596835Z","shell.execute_reply":"2023-09-15T13:46:36.599131Z"},"trusted":true},"execution_count":null,"outputs":[]},{"cell_type":"code","source":"import matplotlib.pyplot as plt\nimport matplotlib.image as mpimg\n\nfor i in range(0, 1300, 100):\n    img = mpimg.imread(f'./frame{i}.jpg')\n    imgplot = plt.imshow(img)\n    plt.show()","metadata":{"_uuid":"4b2f7802-238a-404a-a011-7cca8434266c","_cell_guid":"45df3089-27d8-4389-834e-6b56830fe304","collapsed":false,"jupyter":{"outputs_hidden":false},"execution":{"iopub.status.busy":"2023-09-15T13:46:36.602354Z","iopub.execute_input":"2023-09-15T13:46:36.602630Z","iopub.status.idle":"2023-09-15T13:46:37.744690Z","shell.execute_reply.started":"2023-09-15T13:46:36.602591Z","shell.execute_reply":"2023-09-15T13:46:37.742581Z"},"trusted":true},"execution_count":null,"outputs":[]},{"cell_type":"markdown","source":"## Detect Faces\n\nI will use this [great notebook](https://www.kaggle.com/serkanpeldek/face-detection-with-opencv) to detect faces","metadata":{"_uuid":"732f688f-5990-495a-892e-70c1b388735a","_cell_guid":"e53bd985-1a71-4dff-ab96-1aebf402407d","trusted":true}},{"cell_type":"code","source":"class FaceDetector():\n\n    def __init__(self,faceCascadePath):\n        self.faceCascade=cv2.CascadeClassifier(faceCascadePath)\n\n\n    def detect(self, image, scaleFactor=1.1,\n               minNeighbors=5,\n               minSize=(5,5)):\n        \n        #function return rectangle coordinates of faces for given image\n        rects=self.faceCascade.detectMultiScale(image,\n                                                scaleFactor=scaleFactor,\n                                                minNeighbors=minNeighbors,\n                                                minSize=minSize)\n        return rects","metadata":{"_uuid":"c096d3ca-31ab-4c96-a9a6-de06097a5a2d","_cell_guid":"e0de5d5a-b073-41b6-a79a-9f48c0d42495","collapsed":false,"jupyter":{"outputs_hidden":false},"execution":{"iopub.status.busy":"2023-09-15T13:46:37.745652Z","iopub.status.idle":"2023-09-15T13:46:37.746119Z"},"trusted":true},"execution_count":null,"outputs":[]},{"cell_type":"markdown","source":"Download pretrained model from [here](https://raw.githubusercontent.com/opencv/opencv/master/data/haarcascades/haarcascade_frontalface_default.xml)","metadata":{"_uuid":"5e60f9a5-6f7f-45c3-b519-deb328685674","_cell_guid":"660e1c04-c067-4033-b6f9-6b526c815364","trusted":true}},{"cell_type":"code","source":"#Frontal face of haar cascade loaded\nfrontal_cascade_path=\"/kaggle/input/casscadeclassifier/haarcascade_frontalface_default.xml\"\n\n#Detector object created\nfd=FaceDetector(frontal_cascade_path)","metadata":{"_uuid":"7f1b00c9-3e07-46b9-a743-18cf6eab9cf4","_cell_guid":"835f8679-d740-4639-9964-15d51533c38b","collapsed":false,"jupyter":{"outputs_hidden":false},"execution":{"iopub.status.busy":"2023-09-15T13:46:37.747125Z","iopub.status.idle":"2023-09-15T13:46:37.747529Z"},"trusted":true},"execution_count":null,"outputs":[]},{"cell_type":"code","source":"my_image=cv2.imread(\"frame1100.jpg\")","metadata":{"_uuid":"e46a8bf4-f143-4721-a618-8f3699325806","_cell_guid":"19bbf607-afaf-44ad-a408-88ad79de4c6c","collapsed":false,"jupyter":{"outputs_hidden":false},"execution":{"iopub.status.busy":"2023-09-15T13:46:37.748368Z","iopub.status.idle":"2023-09-15T13:46:37.748725Z"},"trusted":true},"execution_count":null,"outputs":[]},{"cell_type":"code","source":"def get_my_image():\n    return np.copy(my_image)\n\ndef show_image(image):\n    plt.figure(figsize=(18,15))\n    #Before showing image, bgr color order transformed to rgb order\n    plt.imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))\n    plt.xticks([])\n    plt.yticks([])\n    plt.show()","metadata":{"_uuid":"0d560042-14d6-450d-aa75-84b05e016af8","_cell_guid":"39d35c3b-28ac-4747-927b-77013e062ee6","collapsed":false,"jupyter":{"outputs_hidden":false},"execution":{"iopub.status.busy":"2023-09-15T13:46:37.749594Z","iopub.status.idle":"2023-09-15T13:46:37.749968Z"},"trusted":true},"execution_count":null,"outputs":[]},{"cell_type":"code","source":"show_image(get_my_image())","metadata":{"_uuid":"c6cf581e-254c-493b-8ae7-38f583affc71","_cell_guid":"fa868d0a-5c74-4a11-8d46-ad5f8eec3bf3","collapsed":false,"jupyter":{"outputs_hidden":false},"execution":{"iopub.status.busy":"2023-09-15T13:46:37.750828Z","iopub.status.idle":"2023-09-15T13:46:37.751184Z"},"trusted":true},"execution_count":null,"outputs":[]},{"cell_type":"code","source":"def detect_face(image, scaleFactor, minNeighbors, minSize):\n    # face will detected in gray image\n    image_gray=cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)\n\n    faces=fd.detect(image_gray,\n                   scaleFactor=scaleFactor,\n                   minNeighbors=minNeighbors,\n                   minSize=minSize)\n\n    for x, y, w, h in faces:\n        #detected faces shown in color image\n        cv2.rectangle(image,(x,y),(x+w, y+h),(127, 255,0),3)\n\n    show_image(image)","metadata":{"_uuid":"409c2c3e-b2bd-4dff-915e-e78ba10833e8","_cell_guid":"df881b07-6648-4844-90eb-e18f08e179af","collapsed":false,"jupyter":{"outputs_hidden":false},"execution":{"iopub.status.busy":"2023-09-15T13:46:37.752101Z","iopub.status.idle":"2023-09-15T13:46:37.752449Z"},"trusted":true},"execution_count":null,"outputs":[]},{"cell_type":"code","source":"detect_face(image=get_my_image(), \n            scaleFactor=1.9, \n            minNeighbors=3, \n            minSize=(30,30))","metadata":{"_uuid":"9445fecd-66e7-4a32-9086-41631e581cdf","_cell_guid":"5f4659f5-426b-479a-be9f-f9724fba0b2a","collapsed":false,"jupyter":{"outputs_hidden":false},"execution":{"iopub.status.busy":"2023-09-15T13:46:37.753322Z","iopub.status.idle":"2023-09-15T13:46:37.753665Z"},"trusted":true},"execution_count":null,"outputs":[]}]}
+# %% [markdown]
+# # Convert Data into Frames and Face Detection
+# 
+# This notebook is split into 2 parts.  First, I am going to convert a video to still frames using OpenCV.  Next I am going to use OpenCV to put a bounding box around faces
+
+# %% [code]
+
+
+# %% [markdown]
+# ## Convert Video into Frames
+
+# %% [code] {"jupyter":{"outputs_hidden":false},"execution":{"iopub.status.busy":"2023-09-15T13:46:32.596498Z","iopub.execute_input":"2023-09-15T13:46:32.596864Z","iopub.status.idle":"2023-09-15T13:46:36.600453Z","shell.execute_reply.started":"2023-09-15T13:46:32.596835Z","shell.execute_reply":"2023-09-15T13:46:36.599131Z"}}
+import cv2
+import numpy as np
+
+vidObj = cv2.VideoCapture('est.mp4')
+
+count = 0
+
+while True:
+
+    success, image = vidObj.read()
+
+    if success:
+        cv2.imwrite(f"frame{count}.jpg", image)
+    else:
+        break
+
+    count += 1
+
+# %% [code] {"jupyter":{"outputs_hidden":false},"execution":{"iopub.status.busy":"2023-09-15T13:46:36.602354Z","iopub.execute_input":"2023-09-15T13:46:36.602630Z","iopub.status.idle":"2023-09-15T13:46:37.744690Z","shell.execute_reply.started":"2023-09-15T13:46:36.602591Z","shell.execute_reply":"2023-09-15T13:46:37.742581Z"}}
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
+
+for i in range(0, 1300, 100):
+    img = mpimg.imread(f'./frame{i}.jpg')
+    imgplot = plt.imshow(img)
+    plt.show()
+
+
+# %% [markdown]
+# ## Detect Faces
+# 
+# I will use this [great notebook](https://www.kaggle.com/serkanpeldek/face-detection-with-opencv) to detect faces
+
+# %% [code] {"jupyter":{"outputs_hidden":false},"execution":{"iopub.status.busy":"2023-09-15T13:46:37.745652Z","iopub.status.idle":"2023-09-15T13:46:37.746119Z"}}
+class FaceDetector():
+
+    def __init__(self, faceCascadePath):
+        self.faceCascade = cv2.CascadeClassifier(faceCascadePath)
+
+    def detect(self, image, scaleFactor=1.1,
+               minNeighbors=5,
+               minSize=(5, 5)):
+        # function return rectangle coordinates of faces for given image
+        rects = self.faceCascade.detectMultiScale(image,
+                                                  scaleFactor=scaleFactor,
+                                                  minNeighbors=minNeighbors,
+                                                  minSize=minSize)
+        return rects
+
+
+# %% [markdown]
+# Download pretrained model from [here](https://raw.githubusercontent.com/opencv/opencv/master/data/haarcascades/haarcascade_frontalface_default.xml)
+
+# %% [code] {"jupyter":{"outputs_hidden":false},"execution":{"iopub.status.busy":"2023-09-15T13:46:37.747125Z","iopub.status.idle":"2023-09-15T13:46:37.747529Z"}}
+# Frontal face of haar cascade loaded
+frontal_cascade_path = "/kaggle/input/casscadeclassifier/haarcascade_frontalface_default.xml"
+
+# Detector object created
+fd = FaceDetector(frontal_cascade_path)
+
+# %% [code] {"jupyter":{"outputs_hidden":false},"execution":{"iopub.status.busy":"2023-09-15T13:46:37.748368Z","iopub.status.idle":"2023-09-15T13:46:37.748725Z"}}
+my_image = cv2.imread("frame1100.jpg")
+
+
+# %% [code] {"jupyter":{"outputs_hidden":false},"execution":{"iopub.status.busy":"2023-09-15T13:46:37.749594Z","iopub.status.idle":"2023-09-15T13:46:37.749968Z"}}
+def get_my_image():
+    return np.copy(my_image)
+
+
+def show_image(image):
+    plt.figure(figsize=(18, 15))
+    # Before showing image, bgr color order transformed to rgb order
+    plt.imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+    plt.xticks([])
+    plt.yticks([])
+    plt.show()
+
+
+# %% [code] {"jupyter":{"outputs_hidden":false},"execution":{"iopub.status.busy":"2023-09-15T13:46:37.750828Z","iopub.status.idle":"2023-09-15T13:46:37.751184Z"}}
+show_image(get_my_image())
+
+
+# %% [code] {"jupyter":{"outputs_hidden":false},"execution":{"iopub.status.busy":"2023-09-15T13:46:37.752101Z","iopub.status.idle":"2023-09-15T13:46:37.752449Z"}}
+def detect_face(image, scaleFactor, minNeighbors, minSize):
+    # face will detected in gray image
+    image_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+    faces = fd.detect(image_gray,
+                      scaleFactor=scaleFactor,
+                      minNeighbors=minNeighbors,
+                      minSize=minSize)
+
+    for x, y, w, h in faces:
+        # detected faces shown in color image
+        cv2.rectangle(image, (x, y), (x + w, y + h), (127, 255, 0), 3)
+
+    show_image(image)
+
+
+# %% [code] {"jupyter":{"outputs_hidden":false},"execution":{"iopub.status.busy":"2023-09-15T13:46:37.753322Z","iopub.status.idle":"2023-09-15T13:46:37.753665Z"}}
+detect_face(image=get_my_image(),
+            scaleFactor=1.9,
+            minNeighbors=3,
+            minSize=(30, 30))
